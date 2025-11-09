@@ -1,0 +1,21 @@
+.ultrahuman-dashboard {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.ultrahuman-dashboard__chart {
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: var(--shadow-s); 
+}
+
+.ultrahuman-dashboard__chart h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.ultrahuman-dashboard__chart canvas {
+  width: 100%;
+  min-height: 220px;
+}

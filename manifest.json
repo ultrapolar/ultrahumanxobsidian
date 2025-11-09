@@ -1,0 +1,10 @@
+{
+  "id": "ultrahuman-daily-note-dashboard",
+  "name": "Ultrahuman Daily Dashboard",
+  "version": "0.1.0",
+  "minAppVersion": "1.3.5",
+  "description": "Fetch Ultrahuman metrics and render them as charts inside the daily note.",
+  "author": "",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}

@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS = {
   refreshOnStartup: true
 };
 
+const PLUGIN_DISPLAY_NAME = "Ultrahuman × Obsidian";
 const START_MARKER = "<!-- ultrahuman-dashboard:start -->";
 const END_MARKER = "<!-- ultrahuman-dashboard:end -->";
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -136,7 +137,7 @@ async function loadTemplate(app, templatePath) {
     try {
       return await app.vault.read(templateFile);
     } catch (error) {
-      console.error("Ultrahuman Dashboard: failed to read daily note template", error);
+      console.error(`${PLUGIN_DISPLAY_NAME}: failed to read daily note template`, error);
     }
   }
 
@@ -153,7 +154,7 @@ class UltrahumanSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Ultrahuman Daily Dashboard" });
+    containerEl.createEl("h2", { text: PLUGIN_DISPLAY_NAME });
 
     new Setting(containerEl)
       .setName("API Key")
@@ -386,7 +387,7 @@ function formatNumber(value, unit) {
   return unit ? `${rounded} ${unit}` : String(rounded);
 }
 
-module.exports = class UltrahumanDashboardPlugin extends Plugin {
+module.exports = class UltrahumanObsidianPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
 
@@ -399,7 +400,7 @@ module.exports = class UltrahumanDashboardPlugin extends Plugin {
 
     this.addCommand({
       id: "refresh-ultrahuman-dashboard",
-      name: "Refresh Ultrahuman dashboard",
+      name: "Refresh Ultrahuman metrics",
       callback: () => {
         void this.refreshDailyNote();
       }
@@ -450,9 +451,9 @@ module.exports = class UltrahumanDashboardPlugin extends Plugin {
 
       return note ?? null;
     } catch (error) {
-      console.error("Ultrahuman Dashboard: failed to resolve daily note", error);
+      console.error(`${PLUGIN_DISPLAY_NAME}: failed to resolve daily note`, error);
       new Notice(
-        "Ultrahuman Dashboard: enable the Daily notes core plugin to write metrics.",
+        `${PLUGIN_DISPLAY_NAME}: enable the Daily notes core plugin to write metrics.`,
         8000
       );
       return null;
@@ -480,7 +481,7 @@ module.exports = class UltrahumanDashboardPlugin extends Plugin {
 
   async fetchUltrahumanData(dateISO) {
     if (!this.settings.apiKey) {
-      new Notice("Ultrahuman Dashboard: add your API key in the settings panel.", 8000);
+      new Notice(`${PLUGIN_DISPLAY_NAME}: add your API key in the settings panel.`, 8000);
       return null;
     }
 
@@ -506,9 +507,9 @@ module.exports = class UltrahumanDashboardPlugin extends Plugin {
 
       return this.normalizeApiResponse(response.json, dateISO);
     } catch (error) {
-      console.error("Ultrahuman Dashboard: fetch failed", error);
+      console.error(`${PLUGIN_DISPLAY_NAME}: fetch failed`, error);
       new Notice(
-        "Ultrahuman Dashboard: unable to fetch data from Ultrahuman. Check the console for details.",
+        `${PLUGIN_DISPLAY_NAME}: unable to fetch data from Ultrahuman. Check the console for details.`,
         8000
       );
       return null;
@@ -588,7 +589,7 @@ module.exports = class UltrahumanDashboardPlugin extends Plugin {
     try {
       parsed = JSON.parse(source);
     } catch (error) {
-      console.error("Ultrahuman Dashboard: failed to parse block", error);
+      console.error(`${PLUGIN_DISPLAY_NAME}: failed to parse block`, error);
     }
 
     if (!parsed || typeof parsed !== "object" || !parsed.metrics) {

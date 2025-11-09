@@ -4,18 +4,16 @@ This Obsidian plugin fetches daily metrics from the Ultrahuman API and appends a
 
 ## Installation
 
-1. Download the latest contents of this repository (or clone it) and copy the following files into your vault's `.obsidian/plugins/ultrahumanxobsidian` folder:
-   - `manifest.json`
-   - `main.js`
-   - `styles.css`
-2. Reload Obsidian and enable **Ultrahuman × Obsidian** from the community plugins tab.
-3. Open the plugin settings to paste your Ultrahuman API key, tweak the metrics list, and confirm whether the dashboard should refresh on startup.
+1. Download the latest contents of this repository (or clone it) and copy the `ultrahumanxobsidian/` folder into your vault's `.obsidian/plugins/` directory.
+2. Ensure the folder name stays `ultrahumanxobsidian` (it must match the plugin ID in `manifest.json`).
+3. Reload Obsidian and enable **Ultrahuman × Obsidian** from the community plugins tab.
+4. Open the plugin settings to paste your Ultrahuman API key, tweak the metrics list, and confirm whether the dashboard should refresh on startup.
 
 The plugin does not require a build step — the committed `main.js` file is ready to use as-is.
 
 ### Installing with BRAT
 
-If you prefer to use the [Beta Reviewer's Auto-update Tester](https://github.com/TfTHacker/obsidian42-brat), point BRAT at `ultrapolar/ultrahumanxobsidian` and select the `work` branch. The repository root contains the published `manifest.json`, `main.js`, and `styles.css` files, so BRAT will sync them directly into your vault.
+If you prefer to use the [Beta Reviewer's Auto-update Tester](https://github.com/TfTHacker/obsidian42-brat), point BRAT at `ultrapolar/ultrahumanxobsidian` and select the `work` branch. The published plugin files live inside the `ultrahumanxobsidian/` folder, so BRAT will sync them directly into your vault under the correct plugin ID.
 
 ## How it works
 

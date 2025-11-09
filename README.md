@@ -1,23 +1,26 @@
 # Ultrahuman Daily Dashboard Plugin
 
-This plugin fetches daily metrics from the Ultrahuman API and renders line charts inside today's daily note when the note is opened. It automatically refreshes when Obsidian launches and the daily note becomes active.
+This Obsidian plugin fetches daily metrics from the Ultrahuman API and appends an auto-managed dashboard block to today's daily note. Each dashboard entry is rendered as a responsive SVG line chart so you can review glucose, Hive, sleep, or any other Ultrahuman metrics you track.
 
-## Testing and build status
+## Installation
 
-The project bundles the TypeScript source via `esbuild` using the configuration in `esbuild.config.mjs`. Run the following commands to validate the build locally:
+1. Download the latest contents of this repository (or clone it) and copy the following files into your vault's `.obsidian/plugins/ultrahuman-daily-note-dashboard` folder:
+   - `manifest.json`
+   - `main.js`
+   - `styles.css`
+2. Reload Obsidian and enable **Ultrahuman Daily Dashboard** from the community plugins tab.
+3. Open the plugin settings to paste your Ultrahuman API key, tweak the metrics list, and confirm whether the dashboard should refresh on startup.
 
-```bash
-npm install
-npm run build
-```
+The plugin does not require a build step — the committed `main.js` file is ready to use as-is.
 
-> **Note**
-> The sandboxed environment used for automated validation currently blocks access to `@types/node` from the npm registry, so `npm install` fails with a `403 Forbidden` error. Testing should be executed in a local environment with full registry access.
+## How it works
 
-## Manual verification steps
+- When Obsidian opens your daily note, the plugin requests Ultrahuman metrics for that date and writes them into a fenced code block tagged with `ultrahuman`, wrapped between HTML markers. The block is replaced on every refresh so your note stays tidy.
+- A markdown post processor reads the stored JSON and renders each metric as a smooth SVG line chart with summary statistics (latest value, average, and range) displayed above the visualization.
+- You can trigger a manual refresh at any time via the **Refresh Ultrahuman dashboard** command palette action.
 
-1. Build the plugin (`npm run build`).
-2. Copy `manifest.json`, `main.js`, and `styles.css` into your Obsidian vault's `.obsidian/plugins/ultrahuman-daily-note-dashboard` folder.
-3. Launch Obsidian, enable the plugin, and open today's daily note.
-4. Add your Ultrahuman API key in the plugin settings, adjust the metrics list if desired, and re-open the daily note to trigger a refresh.
-5. Confirm the dashboard block is appended to the note and that charts render for each metric returned by the API.
+## Troubleshooting
+
+- Make sure the Daily notes core plugin is enabled; the Ultrahuman dashboard needs it to locate or create today's note.
+- If you see an "add your API key" notice, open the settings tab and paste a valid Ultrahuman personal access token.
+- Network or authentication failures are reported in Obsidian's developer console (`Ctrl/Cmd + Shift + I`).

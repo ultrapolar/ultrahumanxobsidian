@@ -1,28 +1,12 @@
 {
-  "name": "obsidian-ultrahuman-plugin",
+  "name": "ultrahuman-daily-dashboard",
   "version": "0.1.0",
-  "description": "Obsidian plugin to display Ultrahuman metrics on the daily note.",
-  "main": "main.js",
-  "scripts": {
-    "build": "node esbuild.config.mjs",
-    "dev": "node esbuild.config.mjs --watch"
-  },
+  "description": "Obsidian plugin that fetches Ultrahuman metrics and renders inline charts in the daily note.",
+  "license": "MIT",
   "keywords": [
     "obsidian-plugin",
     "ultrahuman",
-    "charts"
-  ],
-  "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/node": "^20.10.0",
-    "esbuild": "^0.19.5",
-    "obsidian": "latest",
-    "tslib": "^2.6.2",
-    "typescript": "^5.2.2"
-  },
-  "dependencies": {
-    "chart.js": "^4.4.0",
-    "obsidian-daily-notes-interface": "^0.16.1"
-  }
+    "daily-notes",
+    "dashboard"
+  ]
 }

@@ -1,0 +1,12 @@
+{
+  "name": "ultrahumanxobsidian",
+  "version": "0.1.1",
+  "description": "Obsidian plugin that fetches Ultrahuman metrics and renders inline charts in the daily note.",
+  "license": "MIT",
+  "keywords": [
+    "obsidian-plugin",
+    "ultrahuman",
+    "daily-notes",
+    "dashboard"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "ultrahuman-sync",
+  "name": "Ultrahuman Sync",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "Sync your Ultrahuman Ring metrics (sleep, recovery, HRV, steps and more) into Obsidian notes.",
+  "author": "ultrapolar",
+  "authorUrl": "https://github.com/ultrapolar/ultrahumanxobsidian",
+  "isDesktopOnly": false
+}

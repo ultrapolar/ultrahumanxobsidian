@@ -10,6 +10,12 @@ export interface UltrahumanSyncSettings {
   syncOnStartup: boolean;
   /** How many past days (including today) a full sync covers. */
   syncDaysBack: number;
+  /** Days before today that every recent sync re-syncs so partial days heal. */
+  refreshTrailingDays: number;
+  /** How many past days the missed-day scan checks for absent notes. */
+  gapLookbackDays: number;
+  /** Minutes between automatic background syncs; 0 disables interval syncing. */
+  autoSyncIntervalMinutes: number;
 }
 
 export const DEFAULT_SETTINGS: UltrahumanSyncSettings = {
@@ -18,6 +24,9 @@ export const DEFAULT_SETTINGS: UltrahumanSyncSettings = {
   folder: "Ultrahuman",
   syncOnStartup: false,
   syncDaysBack: 1,
+  refreshTrailingDays: 2,
+  gapLookbackDays: 14,
+  autoSyncIntervalMinutes: 0,
 };
 
 export class UltrahumanSettingTab extends PluginSettingTab {
@@ -99,6 +108,55 @@ export class UltrahumanSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.syncDaysBack = value;
             await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Refresh trailing days")
+      .setDesc(
+        "How many days before today every recent sync re-syncs (today is always included). Notes written before a day's data had fully arrived heal themselves on the next sync."
+      )
+      .addSlider((slider) =>
+        slider
+          .setLimits(0, 7, 1)
+          .setValue(this.plugin.settings.refreshTrailingDays)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.refreshTrailingDays = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Missed-day lookback")
+      .setDesc(
+        "How many past days the startup sync and the 'Sync missed days' command scan for dates that have no note yet."
+      )
+      .addSlider((slider) =>
+        slider
+          .setLimits(1, 60, 1)
+          .setValue(this.plugin.settings.gapLookbackDays)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.gapLookbackDays = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Auto-sync interval")
+      .setDesc(
+        "Automatically re-sync recent days every N minutes while Obsidian is open. Set to 0 to turn interval syncing off."
+      )
+      .addSlider((slider) =>
+        slider
+          .setLimits(0, 240, 5)
+          .setValue(this.plugin.settings.autoSyncIntervalMinutes)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.autoSyncIntervalMinutes = value;
+            await this.plugin.saveSettings();
+            this.plugin.restartAutoSync();
           })
       );
   }

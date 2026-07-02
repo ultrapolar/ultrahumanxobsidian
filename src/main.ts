@@ -10,6 +10,13 @@ import {
 const SECTION_START = "%% ultrahuman:start %%";
 const SECTION_END = "%% ultrahuman:end %%";
 
+/** Pause between per-day requests; the Partner API is rate-limited. */
+const REQUEST_SPACING_MS = 1000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function toIsoDate(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -25,6 +32,7 @@ function isValidIsoDate(value: string): boolean {
 
 export default class UltrahumanSyncPlugin extends Plugin {
   settings: UltrahumanSyncSettings = DEFAULT_SETTINGS;
+  private autoSyncIntervalId: number | null = null;
 
   async onload() {
     await this.loadSettings();
@@ -64,9 +72,17 @@ export default class UltrahumanSyncPlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: "sync-missed-days",
+      name: "Sync missed days",
+      callback: () => void this.syncMissedDays(),
+    });
+
     if (this.settings.syncOnStartup) {
-      this.app.workspace.onLayoutReady(() => void this.syncRecent({ quiet: true }));
+      this.app.workspace.onLayoutReady(() => void this.syncStartup());
     }
+
+    this.restartAutoSync();
   }
 
   async loadSettings() {
@@ -87,21 +103,97 @@ export default class UltrahumanSyncPlugin extends Plugin {
     return true;
   }
 
+  /**
+   * (Re)arm the interval auto-sync to match the current settings. Called on
+   * load and whenever the interval setting changes.
+   */
+  restartAutoSync() {
+    if (this.autoSyncIntervalId !== null) {
+      window.clearInterval(this.autoSyncIntervalId);
+      this.autoSyncIntervalId = null;
+    }
+    if (this.settings.autoSyncIntervalMinutes > 0) {
+      this.autoSyncIntervalId = this.registerInterval(
+        window.setInterval(
+          () => void this.syncRecent({ quiet: true }),
+          this.settings.autoSyncIntervalMinutes * 60 * 1000
+        )
+      );
+    }
+  }
+
   async syncRecent(options: { quiet?: boolean } = {}) {
+    await this.syncDates(this.recentDates(), options);
+  }
+
+  async syncMissedDays(options: { quiet?: boolean } = {}) {
+    const missing = this.missedDates();
+    if (missing.length === 0) {
+      if (!options.quiet) {
+        new Notice(
+          `Ultrahuman Sync: no missing days in the last ${this.settings.gapLookbackDays} day(s).`
+        );
+      }
+      return;
+    }
+    await this.syncDates(missing, options);
+  }
+
+  /**
+   * Startup sync: backfill days that got no note while Obsidian was closed
+   * (oldest first), then refresh the recent trailing window.
+   */
+  private async syncStartup() {
+    const dates = this.missedDates();
+    for (const date of this.recentDates()) {
+      if (!dates.includes(date)) dates.push(date);
+    }
+    await this.syncDates(dates, { quiet: true });
+  }
+
+  /**
+   * Today plus enough previous days to cover both the configured sync window
+   * and the trailing refresh window, so partially-synced days self-heal.
+   */
+  private recentDates(): string[] {
+    const days = Math.max(
+      this.settings.syncDaysBack,
+      this.settings.refreshTrailingDays + 1
+    );
     const dates: string[] = [];
-    for (let i = 0; i < this.settings.syncDaysBack; i++) {
+    for (let i = 0; i < days; i++) {
       const day = new Date();
       day.setDate(day.getDate() - i);
       dates.push(toIsoDate(day));
     }
-    await this.syncDates(dates, options);
+    return dates;
+  }
+
+  /** Dates in the lookback window (oldest first) that have no note yet. */
+  private missedDates(): string[] {
+    const folder = this.settings.folder || "Ultrahuman";
+    const missing: string[] = [];
+    for (let i = this.settings.gapLookbackDays - 1; i >= 0; i--) {
+      const day = new Date();
+      day.setDate(day.getDate() - i);
+      const date = toIsoDate(day);
+      const path = normalizePath(`${folder}/${date}.md`);
+      if (!(this.app.vault.getAbstractFileByPath(path) instanceof TFile)) {
+        missing.push(date);
+      }
+    }
+    return missing;
   }
 
   async syncDates(dates: string[], options: { quiet?: boolean } = {}) {
     if (!this.checkConfigured()) return;
 
     let synced = 0;
-    for (const date of dates) {
+    for (let i = 0; i < dates.length; i++) {
+      const date = dates[i];
+      if (i > 0) {
+        await sleep(REQUEST_SPACING_MS); // Keep per-request pacing conservative.
+      }
       try {
         const metrics = await fetchMetrics(
           this.settings.apiKey,
@@ -120,6 +212,9 @@ export default class UltrahumanSyncPlugin extends Plugin {
         new Notice(message);
         if (error instanceof UltrahumanApiError && (error.status === 401 || error.status === 403)) {
           return; // No point retrying other dates with bad credentials.
+        }
+        if (error instanceof UltrahumanApiError && error.status === 429) {
+          return; // Rate limit persisted through backoff; syncing more dates would make it worse.
         }
       }
     }

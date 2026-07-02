@@ -1,0 +1,34 @@
+# Obsidian plugin release: push a tag matching the version in manifest.json
+# (no "v" prefix, e.g. `git tag 0.1.0 && git push origin 0.1.0`) and this
+# builds main.js and attaches it plus manifest.json to a draft GitHub
+# release. Publish the draft to make it installable via BRAT or, once the
+# plugin is listed, the community catalog.
+name: Release
+
+on:
+  push:
+    tags: ["*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Create draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          gh release create "$tag" --title "$tag" --draft \
+            main.js manifest.json
